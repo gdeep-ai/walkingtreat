@@ -5,6 +5,8 @@ export interface Recommendation {
 
 export interface Stop {
   name: string;
+  address: string;
+  hours_of_operation: string;
   recommendations: Recommendation[];
   notes: string;
   maps_link: string;
@@ -21,6 +23,7 @@ export interface Itinerary {
 export interface ItineraryResponse {
   city: string;
   itineraries: Itinerary[];
+  suggested_schedule: string;
 }
 
 export interface FormState {
@@ -29,4 +32,7 @@ export interface FormState {
   budget: number;
   currency: string;
   focus: string;
+  exclusions: string;
+  neighborhood: string;
+  tourPace: 'relaxed' | 'intensive';
 }

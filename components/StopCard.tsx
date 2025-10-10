@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Stop } from '../types';
-import { IconMapPin, IconStar } from './IconComponents';
+import { IconMapPin, IconStar, IconClock } from './IconComponents';
 
 interface StopCardProps {
   stop: Stop;
@@ -19,14 +19,25 @@ const StopCard: React.FC<StopCardProps> = ({ stop, index }) => {
           href={stop.maps_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center text-sm text-sky-600 hover:text-sky-800 hover:underline"
+          className="flex items-center text-sm text-sky-600 hover:text-sky-800 hover:underline flex-shrink-0 ml-4"
         >
           <IconMapPin className="w-4 h-4 mr-1" />
           Map
         </a>
       </div>
 
-      <p className="text-slate-700 mt-1 italic pl-10">"{stop.notes}"</p>
+      <div className="pl-10 mt-2 space-y-1 text-sm text-slate-600">
+        <p className="flex items-start">
+          <IconMapPin className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
+          <span>{stop.address}</span>
+        </p>
+        <p className="flex items-start">
+          <IconClock className="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0" />
+          <span>{stop.hours_of_operation}</span>
+        </p>
+      </div>
+
+      <p className="text-slate-700 mt-2 italic pl-10">"{stop.notes}"</p>
       
       <div className="mt-3 bg-indigo-50/70 p-3 rounded-md ml-10">
         <h5 className="font-semibold text-indigo-900 mb-2">Must-Try Items:</h5>

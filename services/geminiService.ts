@@ -38,6 +38,7 @@ const responseSchema = {
   type: Type.OBJECT,
   properties: {
     city: { type: Type.STRING },
+    suggested_schedule: { type: Type.STRING, description: "A brief suggested schedule for how to tackle the 3 itineraries over the specified number of days, based on the user's preferred pace." },
     itineraries: {
       type: Type.ARRAY,
       items: {
@@ -51,6 +52,8 @@ const responseSchema = {
               type: Type.OBJECT,
               properties: {
                 name: { type: Type.STRING },
+                address: { type: Type.STRING, description: "The full, factual street address of the location." },
+                hours_of_operation: { type: Type.STRING, description: "The hours of operation, e.g., 'Mon-Sat 9am-6pm, Sun closed'." },
                 recommendations: {
                   type: Type.ARRAY,
                   description: "A list of 2-3 must-try items.",
@@ -58,16 +61,16 @@ const responseSchema = {
                     type: Type.OBJECT,
                     properties: {
                       item: { type: Type.STRING, description: "Name of the recommended dessert." },
-                      description: { type: Type.STRING, description: "Description of why this item is a must-try." },
+                      description: { type: Type.STRING, description: "A witty and humorous description of why this item is a must-try." },
                     },
                      required: ['item', 'description']
                   }
                 },
-                notes: { type: Type.STRING, description: "Description of the location's vibe and atmosphere." },
+                notes: { type: Type.STRING, description: "A witty and humorous description of the location's vibe and atmosphere." },
                 maps_link: { type: Type.STRING },
-                reason: { type: Type.STRING, description: "The reason why this place is 'worth the detour'." },
+                reason: { type: Type.STRING, description: "A witty and humorous reason why this place is 'worth the detour'." },
               },
-              required: ['name', 'recommendations', 'notes', 'maps_link', 'reason']
+              required: ['name', 'address', 'hours_of_operation', 'recommendations', 'notes', 'maps_link', 'reason']
             },
           },
         },
@@ -75,7 +78,7 @@ const responseSchema = {
       },
     },
   },
-  required: ['city', 'itineraries']
+  required: ['city', 'itineraries', 'suggested_schedule']
 };
 
 export async function generateGalleryImages(count: number = 9): Promise<string[]> {
@@ -133,14 +136,19 @@ export async function generateItineraryImage(theme: string, city: string): Promi
 export async function generateDessertItineraries(
   formData: FormState
 ): Promise<ItineraryResponse> {
-  const { city, days, budget, currency, focus } = formData;
+  const { city, days, budget, currency, focus, exclusions, neighborhood, tourPace } = formData;
+  
+  const tourPaceDescription = tourPace === 'relaxed' 
+    ? 'a relaxed pace, with one tour per day' 
+    : 'a more intensive pace, aiming for two tours per day';
 
   const prompt = `
-    You are a dessert travel curator. Your expertise is finding world-class bakeries and ice cream shops—places truly "worth the detour."
-    You are curating for a well-traveled family of 3 (including an 11-year-old). They avoid tourist traps and average sweets, prioritizing craftsmanship, creativity, and provenance.
+    You are a dessert travel curator with a sharp wit and a passion for finding world-class bakeries and ice cream shops—places truly "worth the detour."
+    You are curating for a well-traveled family of 3 (including an 11-year-old). They avoid tourist traps and average sweets, prioritizing craftsmanship, creativity, and provenance. They appreciate a good laugh.
 
     For the city of ${city}, create exactly 3 distinct dessert itineraries. The trip is for ${days} days with a per-person budget of ${budget} ${currency}.
-    The family's optional focus is on: ${focus || 'a balanced mix of everything delicious'}.
+    The family's optional focus is on: ${focus || 'a balanced mix of everything delicious'}.${exclusions ? `\nThey want to specifically AVOID: ${exclusions}.` : ''}
+    The family prefers ${tourPaceDescription}.
 
     The three itineraries must follow these themes:
     1. "Classic Icons": The legendary, time-honored establishments that define the city's dessert scene.
@@ -148,12 +156,15 @@ export async function generateDessertItineraries(
     3. "Modern Artisans": The innovative, boundary-pushing creators who are redefining dessert with new techniques and flavors.
 
     RULES:
-    - **Geographical Grouping:** All stops within a single itinerary MUST be geographically close to form a logical walking tour (max 15-20 min walk between stops). This is critical.
-    - **Current Information:** Use up-to-date knowledge to ensure locations are still in operation.
-    - **'reason' field:** Clearly explain why each stop is "worth the detour" (e.g., unique ingredient sourcing, renowned pastry chef, specific technique).
-    - **'notes' field:** Describe the location's ambiance and what to expect.
-    - **'recommendations':** Provide 2-3 specific must-try items with compelling descriptions.
+    - **Geographical Grouping:** All stops within a single itinerary MUST be geographically close to form a logical walking tour (max 15-20 min walk between stops). This is critical.${neighborhood ? `\n- **Starting Point:** The itineraries should be centered around the ${neighborhood} area.` : ''}
+    - **Humorous & Witty Tone:** Inject humor and wit into all descriptive fields ('notes', 'reason', and 'recommendations.description'). The tone should be fun and engaging, like a cool, in-the-know friend sharing secrets. Be creative!
+    - **Factual Information:** Despite the witty tone, all core information MUST be factual and up-to-date. This includes location names, menu items, addresses, and hours of operation. Do not make up information.
+    - **'address' & 'hours_of_operation':** You must provide the full street address and current hours for each stop.
+    - **'reason' field:** Clearly explain why each stop is "worth the detour." Make it funny.
+    - **'notes' field:** Describe the location's ambiance and what to expect, with a humorous spin.
+    - **'recommendations':** Provide 2-3 specific must-try items with compelling and witty descriptions.
     - **'total_estimated_cost':** Provide a realistic cost estimate for one person in the specified currency.
+    - **Suggested Schedule:** Provide a brief, practical schedule for the family to follow over their ${days}-day trip in the 'suggested_schedule' field, based on their chosen pace.
     - **JSON ONLY:** The entire output must be a single, valid JSON object.
   `;
 
@@ -168,11 +179,14 @@ export async function generateDessertItineraries(
       },
     });
 
-    const jsonText = response.text.trim();
-    if (!jsonText) {
+    const rawText = response.text.trim();
+    if (!rawText) {
         throw new Error("The AI returned an empty response. Please try refining your request.");
     }
     
+    // Clean the response to handle potential markdown code fences
+    const jsonText = rawText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
+
     return JSON.parse(jsonText) as ItineraryResponse;
 
   } catch (error) {

@@ -12,21 +12,36 @@ import type { FormState, ItineraryResponse } from './types';
 
 function App() {
   const [itineraryResponse, setItineraryResponse] = useState<ItineraryResponse | null>(null);
+  const [submittedFormData, setSubmittedFormData] = useState<FormState | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [galleryLoading, setGalleryLoading] = useState<boolean>(true);
+  const [galleryLoading, setGalleryLoading] = useState<boolean>(false);
   
   useEffect(() => {
-    const fetchGalleryImages = async () => {
-      setGalleryLoading(true);
-      const images = await generateGalleryImages(9);
-      setGalleryImages(images);
-      setGalleryLoading(false);
-    };
-
-    fetchGalleryImages();
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('city')) {
+      const formDataFromUrl: FormState = {
+        city: params.get('city') || 'Paris',
+        days: Number(params.get('days')) || 3,
+        budget: Number(params.get('budget')) || 50,
+        currency: params.get('currency') || 'EUR',
+        focus: params.get('focus') || '',
+        exclusions: params.get('exclusions') || '',
+        neighborhood: params.get('neighborhood') || '',
+        tourPace: (params.get('tourPace') as FormState['tourPace']) || 'relaxed',
+      };
+      handleFormSubmit(formDataFromUrl);
+    } else {
+      const fetchGalleryImages = async () => {
+        setGalleryLoading(true);
+        const images = await generateGalleryImages(9);
+        setGalleryImages(images);
+        setGalleryLoading(false);
+      };
+      fetchGalleryImages();
+    }
   }, []);
 
 
@@ -34,6 +49,7 @@ function App() {
     setLoading(true);
     setError(null);
     setItineraryResponse(null);
+    setSubmittedFormData(formData);
     try {
       const response = await generateDessertItineraries(formData);
       
@@ -61,12 +77,13 @@ function App() {
     <div className="bg-gradient-to-br from-sky-50 via-purple-50 to-blue-100 min-h-screen text-slate-900 flex flex-col">
       <Header />
       <main className="container mx-auto p-4 md:p-8 flex-grow">
-        {/* Fix: Corrected typo from 'handleFormSplit' to 'handleFormSubmit'. */}
         <ItineraryForm onSubmit={handleFormSubmit} loading={loading} />
         <div className="mt-8">
           {loading && <LoadingSpinner />}
           {error && <ErrorDisplay message={error} />}
-          {itineraryResponse && <ItineraryDisplay data={itineraryResponse} />}
+          {itineraryResponse && submittedFormData && (
+            <ItineraryDisplay data={itineraryResponse} formData={submittedFormData} />
+          )}
           
           {!loading && !error && !itineraryResponse && (
             <>
