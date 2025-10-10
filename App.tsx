@@ -1,63 +1,85 @@
-
-import React, { useState, useCallback } from 'react';
-import type { FormState, Itinerary } from './types';
-import { generateDessertItineraries } from './services/geminiService';
+import React, { useState, useEffect } from 'react';
+import Header from './components/Header';
 import ItineraryForm from './components/ItineraryForm';
 import ItineraryDisplay from './components/ItineraryDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
-import Header from './components/Header';
-import Welcome from './components/Welcome';
 import ErrorDisplay from './components/ErrorDisplay';
+import ImageGallery from './components/ImageGallery';
+import PromoText from './components/PromoText';
+import Footer from './components/Footer';
+import { generateDessertItineraries, generateItineraryImage, generateGalleryImages } from './services/geminiService';
+import type { FormState, ItineraryResponse } from './types';
 
-const App: React.FC = () => {
-  const [itineraries, setItineraries] = useState<Itinerary[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+function App() {
+  const [itineraryResponse, setItineraryResponse] = useState<ItineraryResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [city, setCity] = useState<string>('');
 
-  const handleFormSubmit = useCallback(async (formData: FormState) => {
-    setIsLoading(true);
-    setError(null);
-    setItineraries(null);
-    setCity(formData.city);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState<boolean>(true);
+  
+  useEffect(() => {
+    const fetchGalleryImages = async () => {
+      setGalleryLoading(true);
+      const images = await generateGalleryImages(9);
+      setGalleryImages(images);
+      setGalleryLoading(false);
+    };
 
-    try {
-      const result = await generateDessertItineraries(formData);
-      if (result && result.itineraries) {
-        setItineraries(result.itineraries);
-      } else {
-        setError('The response from the AI was empty or malformed. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to generate itineraries. The AI might be busy, or there could be an issue with your request. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
+    fetchGalleryImages();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-amber-50 text-stone-800 antialiased">
-      <Header />
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        <div className="max-w-4xl mx-auto">
-          <ItineraryForm onSubmit={handleFormSubmit} isLoading={isLoading} />
 
-          <div className="mt-12">
-            {isLoading && <LoadingSpinner />}
-            {error && <ErrorDisplay message={error} />}
-            {itineraries && !isLoading && !error && (
-              <ItineraryDisplay itineraries={itineraries} city={city} />
-            )}
-            {!itineraries && !isLoading && !error && <Welcome />}
-          </div>
+  const handleFormSubmit = async (formData: FormState) => {
+    setLoading(true);
+    setError(null);
+    setItineraryResponse(null);
+    try {
+      const response = await generateDessertItineraries(formData);
+      
+      const itinerariesWithImages = await Promise.all(
+        response.itineraries.map(async (itinerary) => {
+          const imageUrl = await generateItineraryImage(itinerary.theme, response.city);
+          return { ...itinerary, imageUrl };
+        })
+      );
+
+      setItineraryResponse({ ...response, itineraries: itinerariesWithImages });
+
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-sky-50 via-purple-50 to-blue-100 min-h-screen text-slate-900 flex flex-col">
+      <Header />
+      <main className="container mx-auto p-4 md:p-8 flex-grow">
+        {/* Fix: Corrected typo from 'handleFormSplit' to 'handleFormSubmit'. */}
+        <ItineraryForm onSubmit={handleFormSubmit} loading={loading} />
+        <div className="mt-8">
+          {loading && <LoadingSpinner />}
+          {error && <ErrorDisplay message={error} />}
+          {itineraryResponse && <ItineraryDisplay data={itineraryResponse} />}
+          
+          {!loading && !error && !itineraryResponse && (
+            <>
+              <ImageGallery images={galleryImages} loading={galleryLoading} />
+              <PromoText />
+            </>
+          )}
+
         </div>
       </main>
-      <footer className="text-center py-6 text-sm text-stone-500">
-        <p>Powered by Gemini API. Curated for the discerning sweet tooth.</p>
-      </footer>
+      <Footer />
     </div>
   );
-};
+}
 
 export default App;

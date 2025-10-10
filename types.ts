@@ -15,6 +15,7 @@ export interface Itinerary {
   theme: string;
   stops: Stop[];
   total_estimated_cost: string;
+  imageUrl?: string;
 }
 
 export interface ItineraryResponse {

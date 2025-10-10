@@ -1,95 +1,86 @@
-
 import React, { useState } from 'react';
 import type { FormState } from '../types';
 
 interface ItineraryFormProps {
   onSubmit: (formData: FormState) => void;
-  isLoading: boolean;
+  loading: boolean;
 }
 
-const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, isLoading }) => {
+const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, loading }) => {
   const [formData, setFormData] = useState<FormState>({
-    city: '',
+    city: 'Paris',
     days: 3,
     budget: 50,
-    currency: 'USD',
-    focus: '',
+    currency: 'EUR',
+    focus: 'Chocolate and pastries',
   });
-  const [error, setError] = useState('');
 
-  const handleChange = <T,>(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    const isNumber = type === 'number';
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? Number(value) : value,
+      [name]: isNumber ? Number(value) : value,
     }));
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.city.trim()) {
-      setError('Please enter a city.');
-      return;
-    }
-    setError('');
     onSubmit(formData);
   };
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-stone-200/50">
-      <h2 className="text-2xl font-bold text-stone-700 mb-2">Plan Your Sweet Escape</h2>
-      <p className="text-stone-500 mb-6">Tell us about your trip, and we'll curate three perfect dessert itineraries.</p>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        
-        <div className="lg:col-span-2">
-          <label htmlFor="city" className="block text-sm font-medium text-stone-600 mb-1">City</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            placeholder="e.g., Madrid"
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-            required
-          />
-          {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="days" className="block text-sm font-medium text-stone-600 mb-1">Days</label>
-          <input
-            type="number"
-            id="days"
-            name="days"
-            value={formData.days}
-            onChange={handleChange}
-            min="1"
-            max="5"
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="budget" className="block text-sm font-medium text-stone-600 mb-1">Budget/Person</label>
-          <div className="flex">
+    <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-slate-200/50">
+      <h2 className="text-xl font-bold mb-4 text-indigo-900">Generate Your Itinerary</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-grow">
+            <label htmlFor="city" className="block text-sm font-medium text-slate-700">City</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-lg border-slate-300/70 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5"
+              required
+            />
+          </div>
+          <div className="flex-grow sm:flex-grow-0 sm:w-20">
+            <label htmlFor="days" className="block text-sm font-medium text-slate-700">Days</label>
+            <input
+              type="number"
+              id="days"
+              name="days"
+              value={formData.days}
+              onChange={handleChange}
+              min="1"
+              max="10"
+              className="mt-1 block w-full rounded-lg border-slate-300/70 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5"
+              required
+            />
+          </div>
+          <div className="flex-grow sm:flex-grow-0 sm:w-32">
+            <label htmlFor="budget" className="block text-sm font-medium text-slate-700">Budget (per day)</label>
             <input
               type="number"
               id="budget"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
-              min="1"
-              className="w-2/3 px-3 py-2 border border-stone-300 rounded-l-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+              min="10"
+              className="mt-1 block w-full rounded-lg border-slate-300/70 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5"
+              required
             />
+          </div>
+          <div className="flex-grow sm:flex-grow-0 sm:w-24">
+            <label htmlFor="currency" className="block text-sm font-medium text-slate-700">Currency</label>
             <select
               id="currency"
               name="currency"
               value={formData.currency}
               onChange={handleChange}
-              className="w-1/3 border-t border-b border-r border-stone-300 rounded-r-lg bg-stone-50 text-stone-600 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
+              className="mt-1 block w-full rounded-lg border-slate-300/70 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5"
             >
               <option>USD</option>
               <option>EUR</option>
@@ -97,31 +88,28 @@ const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, isLoading }) =>
               <option>JPY</option>
             </select>
           </div>
+          <div className="flex-grow w-full sm:w-auto">
+            <label htmlFor="focus" className="block text-sm font-medium text-slate-700">Optional Focus</label>
+            <input
+                type="text"
+                id="focus"
+                name="focus"
+                value={formData.focus}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-lg border-slate-300/70 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5"
+                placeholder='e.g., "ice cream", "vegan"'
+            />
+          </div>
+          <div className="w-full sm:w-auto">
+            <button
+                type="submit"
+                disabled={loading}
+                className="w-full inline-flex justify-center items-center py-3 px-6 border border-transparent shadow-md text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
+            >
+                {loading ? 'Curating...' : 'Generate'}
+            </button>
+          </div>
         </div>
-        
-        <div className="lg:col-span-5">
-          <label htmlFor="focus" className="block text-sm font-medium text-stone-600 mb-1">Optional Focus</label>
-          <input
-            type="text"
-            id="focus"
-            name="focus"
-            value={formData.focus}
-            onChange={handleChange}
-            placeholder="e.g., pastries, ice cream, local specialties"
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition"
-          />
-        </div>
-        
-        <div className="md:col-span-2 lg:col-span-5">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-amber-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-amber-600 transition-colors duration-300 disabled:bg-stone-300 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            {isLoading ? 'Curating...' : 'Generate Itineraries'}
-          </button>
-        </div>
-
       </form>
     </div>
   );

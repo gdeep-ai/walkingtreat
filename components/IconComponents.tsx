@@ -26,7 +26,7 @@ export const IconStar: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     viewBox="0 0 24"
     fill="currentColor"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="1"
     strokeLinecap="round"
     strokeLinejoin="round"
     {...props}
@@ -89,24 +89,3 @@ export const IconRoute: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
         <circle cx="18" cy="5" r="3" />
     </svg>
 );
-
-export const IconSparkles: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="m12 3-1.45 4.1-4.1 1.45 4.1 1.45 1.45 4.1 1.45-4.1 4.1-1.45-4.1-1.45z" />
-      <path d="M5 3v4" />
-      <path d="M19 17v4" />
-      <path d="M3 5h4" />
-      <path d="M17 19h4" />
-    </svg>
-  );
