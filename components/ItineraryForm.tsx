@@ -13,6 +13,8 @@ const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, isLoading, init
     city: '',
     days: 1,
     treatFocus: [],
+    neighborhood: '',
+    priceRange: '',
     specialRequests: '',
     exclusions: '',
   };
@@ -26,7 +28,7 @@ const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, isLoading, init
     }
   }, [initialState]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -86,20 +88,54 @@ const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, isLoading, init
         </div>
 
         <div>
-          <label htmlFor="days" className="block text-sm font-medium text-indigo-900">
-            Number of Days
+          <label htmlFor="neighborhood" className="block text-sm font-medium text-indigo-900">
+            Starting Neighborhood or Attraction (optional)
           </label>
           <input
-            type="number"
-            name="days"
-            id="days"
-            value={formData.days}
-            onChange={(e) => setFormData(prev => ({ ...prev, days: e.target.valueAsNumber }))}
-            min="1"
-            max="7"
-            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            required
+            type="text"
+            name="neighborhood"
+            id="neighborhood"
+            value={formData.neighborhood}
+            onChange={handleChange}
+            placeholder="e.g., Near the Louvre, SoHo, Shibuya Crossing"
+            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                <label htmlFor="days" className="block text-sm font-medium text-indigo-900">
+                    Number of Days
+                </label>
+                <input
+                    type="number"
+                    name="days"
+                    id="days"
+                    value={formData.days}
+                    onChange={(e) => setFormData(prev => ({ ...prev, days: e.target.valueAsNumber }))}
+                    min="1"
+                    max="7"
+                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    required
+                />
+            </div>
+            <div>
+                <label htmlFor="priceRange" className="block text-sm font-medium text-indigo-900">
+                    Price Range (optional)
+                </label>
+                <select
+                    name="priceRange"
+                    id="priceRange"
+                    value={formData.priceRange}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                >
+                    <option value="">Any</option>
+                    <option value="budget-friendly">Budget-friendly ($)</option>
+                    <option value="mid-range">Mid-range ($$)</option>
+                    <option value="splurge">Splurge ($$$)</option>
+                </select>
+            </div>
         </div>
 
         <div>

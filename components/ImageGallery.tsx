@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 
 // This is our "pre-built repository"
 const imageRepository = [
@@ -11,17 +12,12 @@ const imageRepository = [
 ];
 
 const ImageGallery: React.FC = () => {
-    const [imageSrc, setImageSrc] = useState<string>('');
-
-    useEffect(() => {
-        // Select one random image from the repository on mount
+    // Use the useState initializer function to select the image only once on component mount.
+    // This ensures the image source is available on the very first render, fixing the loading issue.
+    const [imageSrc] = useState<string>(() => {
         const randomIndex = Math.floor(Math.random() * imageRepository.length);
-        setImageSrc(imageRepository[randomIndex]);
-    }, []);
-
-    if (!imageSrc) {
-        return null; // Don't render anything until the image is selected
-    }
+        return imageRepository[randomIndex];
+    });
 
     return (
         <div className="my-12">

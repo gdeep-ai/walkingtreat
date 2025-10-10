@@ -1,7 +1,9 @@
 export interface FormState {
   city: string;
-  days: number | string;
+  days: number;
   treatFocus: string[];
+  neighborhood: string;
+  priceRange: string;
   specialRequests: string;
   exclusions: string;
 }
@@ -26,8 +28,22 @@ export interface Itinerary {
   stops: Stop[];
 }
 
+// Based on groundingMetadata structure
+export interface GroundingChunk {
+  // FIX: The `web` property is optional in the Gemini SDK's GroundingChunk type.
+  web?: {
+    uri?: string;
+    title?: string;
+  };
+}
+
+export interface GroundingMetadata {
+  groundingChunks?: GroundingChunk[];
+}
+
 export interface ItineraryResponse {
   city: string;
   suggested_schedule: string;
   itineraries: Itinerary[];
+  groundingMetadata?: GroundingMetadata;
 }

@@ -19,7 +19,7 @@ const StopCard: React.FC<StopCardProps> = ({ stop, index }) => {
 
 
   return (
-    <div className="border-l-4 border-indigo-200 pl-4 py-2 transition-all hover:border-indigo-400 hover:bg-indigo-50/50 rounded-r-lg">
+    <div className="border-l-4 border-indigo-300 pl-4 py-2 transition-all hover:border-indigo-500 hover:bg-white/40 rounded-r-lg">
       <div className="flex justify-between items-start">
         <h4 className="text-xl font-bold text-indigo-900 flex items-center">
             <span className="text-slate-500 mr-3 text-2xl">{index + 1}.</span>
@@ -66,7 +66,7 @@ const StopCard: React.FC<StopCardProps> = ({ stop, index }) => {
 
       <p className="text-slate-700 mt-2 italic pl-10">"{stop.notes}"</p>
       
-      <div className="mt-3 bg-indigo-50/70 p-3 rounded-md ml-10">
+      <div className="mt-3 bg-white/30 p-3 rounded-md ml-10">
         <h5 className="font-semibold text-indigo-900 mb-2">Must-Try Items:</h5>
         <ul className="space-y-2 list-none">
           {stop.recommendations.map((rec) => (

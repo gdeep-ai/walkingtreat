@@ -1,89 +1,94 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ItineraryForm from './components/ItineraryForm';
-import ItineraryDisplay from './components/ItineraryDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorDisplay from './components/ErrorDisplay';
-import Welcome from './components/Welcome';
+import ItineraryDisplay from './components/ItineraryDisplay';
+import ImageGallery from './components/ImageGallery';
+import PromoText from './components/PromoText';
 import { generateItinerary } from './services/geminiService';
 import type { FormState, ItineraryResponse } from './types';
 
 const App: React.FC = () => {
-  const [formState, setFormState] = useState<FormState | null>(null);
-  const [itineraryData, setItineraryData] = useState<ItineraryResponse | null>(null);
+  const [formData, setFormData] = useState<FormState | null>(null);
+  const [itinerary, setItinerary] = useState<ItineraryResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check for URL params to pre-fill form and auto-submit
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('city') && params.has('treatFocus')) {
-      const initialFormState: FormState = {
-        city: params.get('city') || '',
-        days: params.get('days') || 1,
-        treatFocus: params.get('treatFocus')?.split(',') || [],
-        specialRequests: params.get('specialRequests') || '',
-        exclusions: params.get('exclusions') || '',
-      };
-      setFormState(initialFormState);
-      handleSubmit(initialFormState);
-    }
-  }, []);
-
-  const handleSubmit = async (formData: FormState) => {
+  const handleSubmit = useCallback(async (data: FormState) => {
     setIsLoading(true);
     setError(null);
-    setItineraryData(null);
-    setFormState(formData); // Store the submitted form data
-
-    // Clear URL params if it was a new search
-    if (window.location.search) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    setItinerary(null);
+    setFormData(data); // Save form data to re-populate if needed
 
     try {
-      const data = await generateItinerary(formData);
-      setItineraryData(data);
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
+      const result = await generateItinerary(data);
+      if (result && result.itineraries && result.itineraries.length > 0) {
+          setItinerary(result);
+      } else {
+          setError("The generated itinerary was empty or invalid. Please try adjusting your request.");
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
       } else {
         setError('An unknown error occurred.');
       }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setItinerary(null);
+    setError(null);
+    // Keep formData so the form is pre-filled for a new attempt
+  }, []);
+
+  const handleHardReset = useCallback(() => {
+    setItinerary(null);
+    setError(null);
+    setFormData(null);
+  }, []);
 
   const renderContent = () => {
     if (isLoading) {
       return <LoadingSpinner />;
     }
     if (error) {
-      return <ErrorDisplay message={error} />;
+      return (
+        <div className="w-full max-w-4xl mx-auto space-y-4">
+          <ErrorDisplay message={error} />
+           <button
+             onClick={handleReset}
+             className="w-full inline-flex justify-center items-center py-3 px-6 border border-transparent shadow-md text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
+           >
+             Try Again
+           </button>
+        </div>
+      );
     }
-    if (itineraryData && formState) {
-      return <ItineraryDisplay data={itineraryData} formData={formState} />;
+    if (itinerary) {
+      return <ItineraryDisplay itineraryData={itinerary} onReset={handleHardReset} />;
     }
-    return <Welcome />;
-  };
-
-  return (
-    <div className="flex flex-col min-h-screen bg-gray-100 font-sans relative">
-      <div 
-        className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-800 via-purple-700 to-sky-500"
-      ></div>
-      <div className="relative z-10 text-slate-800">
-        <Header />
-        <main className="container mx-auto p-4 md:p-6 flex-grow">
-          <ItineraryForm onSubmit={handleSubmit} isLoading={isLoading} initialState={formState || undefined} />
-          <div className="mt-8 md:mt-12">
-            {renderContent()}
-          </div>
-        </main>
-        <Footer />
+    return (
+      <div className="w-full max-w-4xl mx-auto space-y-8">
+        <ImageGallery />
+        <PromoText />
+        <ItineraryForm onSubmit={handleSubmit} isLoading={isLoading} initialState={formData || undefined} />
       </div>
+    );
+  };
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-sky-500 via-indigo-600 to-purple-700 flex flex-col">
+      <Header />
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        {renderContent()}
+      </main>
+      <Footer />
     </div>
   );
 };
