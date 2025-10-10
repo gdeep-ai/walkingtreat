@@ -1,67 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import ItineraryForm from './components/ItineraryForm';
 import ItineraryDisplay from './components/ItineraryDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorDisplay from './components/ErrorDisplay';
-import ImageGallery from './components/ImageGallery';
-import PromoText from './components/PromoText';
-import Footer from './components/Footer';
-import { generateDessertItineraries, generateItineraryImage, generateGalleryImages } from './services/geminiService';
+import Welcome from './components/Welcome';
+import { generateItinerary } from './services/geminiService';
 import type { FormState, ItineraryResponse } from './types';
 
-function App() {
-  const [itineraryResponse, setItineraryResponse] = useState<ItineraryResponse | null>(null);
-  const [submittedFormData, setSubmittedFormData] = useState<FormState | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+const App: React.FC = () => {
+  const [formState, setFormState] = useState<FormState | null>(null);
+  const [itineraryData, setItineraryData] = useState<ItineraryResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [galleryLoading, setGalleryLoading] = useState<boolean>(false);
-  
   useEffect(() => {
+    // Check for URL params to pre-fill form and auto-submit
     const params = new URLSearchParams(window.location.search);
-    if (params.has('city')) {
-      const formDataFromUrl: FormState = {
-        city: params.get('city') || 'Paris',
-        days: Number(params.get('days')) || 3,
-        budget: Number(params.get('budget')) || 50,
-        currency: params.get('currency') || 'EUR',
-        focus: params.get('focus') || '',
+    if (params.has('city') && params.has('treatFocus')) {
+      const initialFormState: FormState = {
+        city: params.get('city') || '',
+        days: params.get('days') || 1,
+        treatFocus: params.get('treatFocus')?.split(',') || [],
+        specialRequests: params.get('specialRequests') || '',
         exclusions: params.get('exclusions') || '',
-        neighborhood: params.get('neighborhood') || '',
-        tourPace: (params.get('tourPace') as FormState['tourPace']) || 'relaxed',
       };
-      handleFormSubmit(formDataFromUrl);
-    } else {
-      const fetchGalleryImages = async () => {
-        setGalleryLoading(true);
-        const images = await generateGalleryImages(9);
-        setGalleryImages(images);
-        setGalleryLoading(false);
-      };
-      fetchGalleryImages();
+      setFormState(initialFormState);
+      handleSubmit(initialFormState);
     }
   }, []);
 
-
-  const handleFormSubmit = async (formData: FormState) => {
-    setLoading(true);
+  const handleSubmit = async (formData: FormState) => {
+    setIsLoading(true);
     setError(null);
-    setItineraryResponse(null);
-    setSubmittedFormData(formData);
+    setItineraryData(null);
+    setFormState(formData); // Store the submitted form data
+
+    // Clear URL params if it was a new search
+    if (window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     try {
-      const response = await generateDessertItineraries(formData);
-      
-      const itinerariesWithImages = await Promise.all(
-        response.itineraries.map(async (itinerary) => {
-          const imageUrl = await generateItineraryImage(itinerary.theme, response.city);
-          return { ...itinerary, imageUrl };
-        })
-      );
-
-      setItineraryResponse({ ...response, itineraries: itinerariesWithImages });
-
+      const data = await generateItinerary(formData);
+      setItineraryData(data);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -69,34 +52,40 @@ function App() {
         setError('An unknown error occurred.');
       }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="bg-gradient-to-br from-sky-50 via-purple-50 to-blue-100 min-h-screen text-slate-900 flex flex-col">
-      <Header />
-      <main className="container mx-auto p-4 md:p-8 flex-grow">
-        <ItineraryForm onSubmit={handleFormSubmit} loading={loading} />
-        <div className="mt-8">
-          {loading && <LoadingSpinner />}
-          {error && <ErrorDisplay message={error} />}
-          {itineraryResponse && submittedFormData && (
-            <ItineraryDisplay data={itineraryResponse} formData={submittedFormData} />
-          )}
-          
-          {!loading && !error && !itineraryResponse && (
-            <>
-              <ImageGallery images={galleryImages} loading={galleryLoading} />
-              <PromoText />
-            </>
-          )}
+  const renderContent = () => {
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
+    if (error) {
+      return <ErrorDisplay message={error} />;
+    }
+    if (itineraryData && formState) {
+      return <ItineraryDisplay data={itineraryData} formData={formState} />;
+    }
+    return <Welcome />;
+  };
 
-        </div>
-      </main>
-      <Footer />
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100 font-sans relative">
+      <div 
+        className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-800 via-purple-700 to-sky-500"
+      ></div>
+      <div className="relative z-10 text-slate-800">
+        <Header />
+        <main className="container mx-auto p-4 md:p-6 flex-grow">
+          <ItineraryForm onSubmit={handleSubmit} isLoading={isLoading} initialState={formState || undefined} />
+          <div className="mt-8 md:mt-12">
+            {renderContent()}
+          </div>
+        </main>
+        <Footer />
+      </div>
     </div>
   );
-}
+};
 
 export default App;

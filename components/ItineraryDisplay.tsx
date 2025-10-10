@@ -24,11 +24,17 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ data, formData }) =
 
   const handleShare = () => {
     const params = new URLSearchParams();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, String(value));
-      }
-    });
+    params.set('city', formData.city);
+    params.set('days', String(formData.days));
+    if (formData.treatFocus.length > 0) {
+      params.set('treatFocus', formData.treatFocus.join(','));
+    }
+    if (formData.specialRequests) {
+      params.set('specialRequests', formData.specialRequests);
+    }
+     if (formData.exclusions) {
+      params.set('exclusions', formData.exclusions);
+    }
     
     const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
     navigator.clipboard.writeText(shareUrl);
@@ -41,7 +47,7 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ data, formData }) =
         <div className="bg-white/70 backdrop-blur-md p-8 rounded-2xl shadow-lg text-center">
             <h3 className="text-2xl font-bold text-indigo-900">No Itineraries Found</h3>
             <p className="mt-2 text-slate-700">
-                We couldn't find any dessert spots that matched your criteria. Try being less specific with your focus or exclusions.
+                We couldn't find any treat spots that matched your criteria. Try being less specific with your focus or exclusions.
             </p>
         </div>
     );
@@ -50,18 +56,18 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ data, formData }) =
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-indigo-900">
-          Your Dessert Itinerary for {data.city}
+        <h2 className="text-3xl md:text-4xl font-bold text-white drop-shadow-md">
+          Your Treat Itinerary for {data.city}
         </h2>
         {data.suggested_schedule && (
-            <p className="mt-4 max-w-3xl mx-auto text-indigo-800/90 bg-white/60 backdrop-blur-sm p-3 rounded-xl">
+            <p className="mt-4 max-w-3xl mx-auto text-indigo-800 bg-white/60 backdrop-blur-sm p-3 rounded-xl shadow">
                 <span className="font-bold">Suggested Pace:</span> {data.suggested_schedule}
             </p>
         )}
       </div>
 
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-        <div className="flex justify-center flex-wrap gap-2 md:gap-3 p-2 bg-white/50 backdrop-blur-sm rounded-full">
+        <div className="flex justify-center flex-wrap gap-2 md:gap-3 p-2 bg-white/50 backdrop-blur-sm rounded-full shadow">
             {data.itineraries.map((itinerary) => (
             <button
                 key={itinerary.theme}
