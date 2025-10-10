@@ -1,0 +1,5 @@
+{
+  "name": "Dessert Detour",
+  "description": "A dessert travel curator that generates three themed itineraries for a city based on user preferences. It finds world-class bakeries and ice cream shops, highlighting craftsmanship, creativity, and provenance.",
+  "requestFramePermissions": []
+}
