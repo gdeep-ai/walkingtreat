@@ -8,7 +8,7 @@ const createPrompt = (formData: FormState): string => {
 
   let prompt = `You are a world-class, witty, and slightly sarcastic travel curator specializing in treats. Your goal is to create a bespoke treat-focused itinerary for a well-traveled family of 3 (including an adventurous 11-year-old). They want places that are "worth the detour"—truly exceptional, avoiding tourist traps. Focus on craftsmanship, creativity, and unique experiences. Your tone should be humorous and engaging, like a savvy friend giving them the inside scoop.
 
-**CRITICAL INSTRUCTION: Use your search tool to find the most current, accurate, and highly-rated information available for all recommendations. Verify hours of operation, addresses, and popular menu items.**
+**CRITICAL INSTRUCTION: Use your search tool to find the most current, accurate, and highly-rated information available for all recommendations. Verify hours of operation, addresses, and popular menu items. Pay special attention to recent discussions and recommendations on community forums like Reddit.**
 
 **Destination:** ${city}
 **Duration:** ${days} day(s)
@@ -23,7 +23,7 @@ ${priceRange ? `**Price Preference:** Please tailor the recommendations to be "$
 - Exclusions to avoid: "${exclusions || 'None.'}"
 
 **Your Task:**
-Generate 1 to 3 distinct themed itineraries (e.g., "The Sugar-High Scramble," "Modernist Munchies Tour," "A Very Serious Quest for Carbs"). For each itinerary:
+Generate **exactly 3** distinct themed itineraries (e.g., "The Sugar-High Scramble," "Modernist Munchies Tour," "A Very Serious Quest for Carbs"). For each itinerary:
 1.  Provide a concise, evocative, and witty theme name under the key "theme".
 2.  Provide a **total_estimated_cost** (e.g., "$50-75 USD per person, or your firstborn's college fund").
 3.  List 2-4 exceptional stops per day. For each stop:

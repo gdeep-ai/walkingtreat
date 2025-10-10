@@ -1,6 +1,6 @@
 
-import React from 'react';
-import type { ItineraryResponse, Stop } from '../types';
+import React, { useState } from 'react';
+import type { ItineraryResponse, Stop, Itinerary } from '../types';
 import ItineraryCard from './ItineraryCard';
 import MapComponent from './MapComponent';
 import { IconShare, IconSource } from './IconComponents';
@@ -11,7 +11,10 @@ interface ItineraryDisplayProps {
 }
 
 const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itineraryData, onReset }) => {
-  const allStops: Stop[] = itineraryData.itineraries.flatMap(it => it.stops);
+  const [selectedItineraryIndex, setSelectedItineraryIndex] = useState(0);
+
+  const selectedItinerary: Itinerary | undefined = itineraryData.itineraries[selectedItineraryIndex];
+  
   const groundingChunks = itineraryData.groundingMetadata?.groundingChunks?.filter(
     (chunk) => chunk.web && chunk.web.uri && chunk.web.title
   ) || [];
@@ -27,14 +30,31 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itineraryData, onRe
         </p>
       </div>
 
+      {/* Bubble Navigation */}
+      <div className="flex justify-center flex-wrap gap-3">
+        {itineraryData.itineraries.map((itinerary, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedItineraryIndex(index)}
+            className={`px-5 py-2.5 text-sm font-semibold rounded-full shadow-md transition-all transform hover:-translate-y-0.5 ${
+              selectedItineraryIndex === index
+                ? 'bg-indigo-600 text-white ring-2 ring-offset-2 ring-offset-indigo-600/20 ring-white'
+                : 'bg-white/80 text-indigo-800 hover:bg-white'
+            }`}
+          >
+            {itinerary.theme}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {itineraryData.itineraries.map((itinerary, index) => (
-            <ItineraryCard key={`${itinerary.theme}-${index}`} itinerary={itinerary} />
-          ))}
+          {selectedItinerary && (
+            <ItineraryCard key={selectedItinerary.theme} itinerary={selectedItinerary} />
+          )}
         </div>
         <div className="lg:col-span-1 space-y-8">
-           {allStops.length > 0 && <MapComponent stops={allStops} />}
+           {selectedItinerary && selectedItinerary.stops.length > 0 && <MapComponent stops={selectedItinerary.stops} />}
            {groundingChunks.length > 0 && (
              <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/50">
                <h3 className="text-xl font-bold text-indigo-900 mb-4 flex items-center">
@@ -48,13 +68,13 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itineraryData, onRe
                  {groundingChunks.map((chunk, index) => (
                    <li key={index}>
                      <a
-                       href={chunk.web.uri}
+                       href={chunk.web!.uri}
                        target="_blank"
                        rel="noopener noreferrer"
                        className="text-sky-700 hover:text-sky-900 hover:underline text-sm truncate block"
-                       title={chunk.web.title}
+                       title={chunk.web!.title}
                      >
-                       {chunk.web.title}
+                       {chunk.web!.title}
                      </a>
                    </li>
                  ))}
