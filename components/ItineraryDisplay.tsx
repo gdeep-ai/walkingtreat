@@ -1,100 +1,71 @@
+import React from 'react';
+import type { Itinerary } from '../types.ts';
+import LoadingSpinner from './LoadingSpinner.tsx';
+import ErrorDisplay from './ErrorDisplay.tsx';
+import ItineraryCard from './ItineraryCard.tsx';
+import MapComponent from './MapComponent.tsx';
 
-import React, { useState } from 'react';
-import type { ItineraryResponse, Stop, Itinerary } from '../types';
-import ItineraryCard from './ItineraryCard';
-import MapComponent from './MapComponent';
-import { IconShare, IconSource } from './IconComponents';
+import { motion } from 'motion/react';
 
 interface ItineraryDisplayProps {
-  itineraryData: ItineraryResponse;
-  onReset: () => void;
+  itinerary: Itinerary | null;
+  isLoading: boolean;
+  error: string | null;
+  varietyMessage: string | null;
+  correctedDestination: string | null;
 }
 
-const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itineraryData, onReset }) => {
-  const [selectedItineraryIndex, setSelectedItineraryIndex] = useState(0);
+const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itinerary, isLoading, error, varietyMessage, correctedDestination }) => {
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
-  const selectedItinerary: Itinerary | undefined = itineraryData.itineraries[selectedItineraryIndex];
-  
-  const groundingChunks = itineraryData.groundingMetadata?.groundingChunks?.filter(
-    (chunk) => chunk.web && chunk.web.uri && chunk.web.title
-  ) || [];
+  if (error) {
+    return <ErrorDisplay message={error} />;
+  }
 
-  return (
-    <div className="w-full max-w-7xl mx-auto space-y-8">
-      <div className="text-center bg-white/70 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-white/50">
-        <h2 className="text-3xl font-bold text-indigo-900 mb-2">
-          Your Bespoke Dessert Tour for {itineraryData.city}
-        </h2>
-        <p className="text-slate-700 max-w-3xl mx-auto text-lg leading-relaxed">
-          {itineraryData.suggested_schedule}
-        </p>
-      </div>
-
-      {/* Bubble Navigation */}
-      <div className="flex justify-center flex-wrap gap-3">
-        {itineraryData.itineraries.map((itinerary, index) => (
-          <button
-            key={index}
-            onClick={() => setSelectedItineraryIndex(index)}
-            className={`px-5 py-2.5 text-sm font-semibold rounded-full shadow-md transition-all transform hover:-translate-y-0.5 ${
-              selectedItineraryIndex === index
-                ? 'bg-indigo-600 text-white ring-2 ring-offset-2 ring-offset-indigo-600/20 ring-white'
-                : 'bg-white/80 text-indigo-800 hover:bg-white'
-            }`}
+  if (itinerary) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-8"
+      >
+        {correctedDestination && (
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-4 bg-[rgba(232,122,93,0.1)] border-l-4 border-[#E87A5D] text-[#2D2422] p-4 rounded-r-lg shadow-sm" 
+            role="status"
           >
-            {itinerary.theme}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {selectedItinerary && (
-            <ItineraryCard key={selectedItinerary.theme} itinerary={selectedItinerary} />
-          )}
+            <p>Showing results for <strong>{correctedDestination}</strong>.</p>
+          </motion.div>
+        )}
+        {varietyMessage && (
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-4 rounded-r-lg shadow-sm" 
+            role="status"
+          >
+            <p className="font-bold">Just a heads up!</p>
+            <p>{varietyMessage}</p>
+          </motion.div>
+        )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2">
+              <ItineraryCard itinerary={itinerary} />
+          </div>
+          <div className="lg:sticky lg:top-8">
+              <MapComponent stops={itinerary.stops} />
+          </div>
         </div>
-        <div className="lg:col-span-1 space-y-8">
-           {selectedItinerary && selectedItinerary.stops.length > 0 && <MapComponent stops={selectedItinerary.stops} />}
-           {groundingChunks.length > 0 && (
-             <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/50">
-               <h3 className="text-xl font-bold text-indigo-900 mb-4 flex items-center">
-                 <IconSource className="w-5 h-5 mr-2" />
-                 Sources
-               </h3>
-               <p className="text-sm text-slate-600 mb-4">
-                 Information for this itinerary was compiled using Google Search.
-               </p>
-               <ul className="space-y-2">
-                 {groundingChunks.map((chunk, index) => (
-                   <li key={index}>
-                     <a
-                       href={chunk.web!.uri}
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       className="text-sky-700 hover:text-sky-900 hover:underline text-sm truncate block"
-                       title={chunk.web!.title}
-                     >
-                       {chunk.web!.title}
-                     </a>
-                   </li>
-                 ))}
-               </ul>
-             </div>
-           )}
-        </div>
-      </div>
+      </motion.div>
+    );
+  }
 
-      <div className="text-center mt-8">
-        <button
-          onClick={onReset}
-          className="w-full max-w-sm inline-flex justify-center items-center gap-2 py-3 px-6 border border-transparent shadow-md text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
-        >
-          <IconShare className="w-5 h-5 transform rotate-180" />
-          Create Another Itinerary
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default ItineraryDisplay;

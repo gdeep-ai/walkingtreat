@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Stop } from '../types';
-import { IconMapPin, IconDirections } from './IconComponents';
+import type { Stop } from '../types.ts';
+import { MapPin, Navigation } from 'lucide-react';
 
 interface MapComponentProps {
   stops: Stop[];
@@ -25,37 +25,37 @@ const MapComponent: React.FC<MapComponentProps> = ({ stops }) => {
   const tourUrl = createTourUrl(stops);
 
   return (
-    <div className="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-lg h-full border border-white/50">
-      <h3 className="text-xl font-bold text-indigo-900 mb-4">Tour Stops</h3>
-      <div className="bg-indigo-50/80 p-4 rounded-xl text-indigo-800">
-        <p className="font-semibold text-center">Your Walking Tour Route</p>
+    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm h-full border border-slate-100">
+      <h3 className="text-xl font-bold text-[#2D2422] mb-6">Tour Stops</h3>
+      <div className="bg-[#FFFBF5] p-4 rounded-xl text-slate-700 border border-slate-100 mb-6">
+        <p className="font-bold text-center mb-1">Your Walking Tour Route</p>
         <p className="text-sm text-center">Use the button below to see the full tour, or the links next to each stop for individual locations.</p>
       </div>
-      <ul className="space-y-3 mt-4">
+      <ul className="space-y-4">
         {stops.map((stop, index) => (
           <li key={stop.name} className="flex items-center">
-             <span className="text-slate-500 mr-2 text-lg">{index + 1}.</span>
+             <span className="text-[#E87A5D] mr-3 text-xl font-bold italic">{index + 1}.</span>
             <a 
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center text-slate-800 hover:text-sky-600 hover:underline"
+                className="flex items-center text-slate-700 hover:text-[#E87A5D] hover:underline transition-colors"
             >
               {stop.name}
-              <IconMapPin className="w-4 h-4 ml-1.5 text-slate-400" />
+              <MapPin className="w-4 h-4 ml-2 text-slate-400" />
             </a>
           </li>
         ))}
       </ul>
       {tourUrl && (
-        <div className="mt-6">
+        <div className="mt-8">
           <a
             href={tourUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full inline-flex justify-center items-center gap-2 py-3 px-6 border border-transparent shadow-md text-base font-medium rounded-full text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
+            className="w-full inline-flex justify-center items-center gap-2 py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-[#2D2422] hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D2422] hover:shadow-md transform hover:-translate-y-0.5 transition-all"
           >
-            <IconDirections className="w-5 h-5" />
+            <Navigation className="w-5 h-5" />
             View Full Tour on Google Maps
           </a>
         </div>

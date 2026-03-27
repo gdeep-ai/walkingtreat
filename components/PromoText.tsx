@@ -2,15 +2,10 @@ import React from 'react';
 
 const PromoText: React.FC = () => {
   return (
-    <div className="text-center bg-white/70 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-white/50 my-8">
-      <h2 className="text-2xl font-bold text-indigo-900 mb-4 tracking-wide">
-        You, hey you. Hey you! I love desserts — and desserts L-O-V-E me.
+    <div className="text-center bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-slate-100 my-12 max-w-4xl mx-auto">
+      <h2 className="text-2xl sm:text-3xl font-bold text-[#2D2422] tracking-tight leading-relaxed">
+        Time to unleash your inner Indiana Jones of Gelato, the Marco Polo of Macarons, or perhaps even the Sherlock Holmes of Sweet Delicacies.
       </h2>
-      <p className="text-slate-800 max-w-3xl mx-auto text-lg leading-relaxed">
-        <span className="font-semibold text-indigo-800">¡Órale, vato!</span> You’ve just stumbled into the sweetest corner of the internet. 
-        <br />
-        Time to unleash your inner pastry explorer; the Indiana Jones of gelato, the Marco Polo of macarons, maybe even the Sherlock Holmes of sprinkles.
-      </p>
     </div>
   );
 };

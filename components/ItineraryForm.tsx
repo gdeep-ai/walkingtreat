@@ -1,218 +1,202 @@
-import React, { useState, useEffect } from 'react';
-import type { FormState } from '../types';
-import { treatOptions } from '../data/dessertOptions';
+import React, { useState } from 'react';
+import { treatOptions } from '../data/dessertOptions.ts';
+import type { FormState } from '../types.ts';
+import { 
+  IceCream, 
+  Croissant, 
+  CakeSlice, 
+  Candy, 
+  Cookie, 
+  Coffee, 
+  CupSoda, 
+  Pizza, 
+  MapPin, 
+  Sparkles, 
+  Store,
+  Wand2,
+  Info,
+  HelpCircle,
+  Star
+} from 'lucide-react';
 
 interface ItineraryFormProps {
-  onSubmit: (formData: FormState) => void;
+  onGenerate: (data: FormState) => void;
   isLoading: boolean;
-  initialState?: FormState;
 }
 
-const ItineraryForm: React.FC<ItineraryFormProps> = ({ onSubmit, isLoading, initialState }) => {
-  const defaultState: FormState = {
-    city: '',
-    days: 1,
-    treatFocus: [],
-    neighborhood: '',
-    priceRange: '',
-    specialRequests: '',
-    exclusions: '',
-  };
+const iconMap: Record<string, React.ReactNode> = {
+  'ice-cream': <IceCream className="w-6 h-6 mb-2" />,
+  'pastries': <Croissant className="w-6 h-6 mb-2" />,
+  'cakes': <CakeSlice className="w-6 h-6 mb-2" />,
+  'chocolate': <Candy className="w-6 h-6 mb-2" />,
+  'cookies': <Cookie className="w-6 h-6 mb-2" />,
+  'beverages': <Coffee className="w-6 h-6 mb-2" />,
+  'bubble-tea': <CupSoda className="w-6 h-6 mb-2" />,
+  'savory': <Pizza className="w-6 h-6 mb-2" />,
+  'regional': <MapPin className="w-6 h-6 mb-2" />,
+  'avant-garde': <Sparkles className="w-6 h-6 mb-2" />,
+  'bakeries': <Store className="w-6 h-6 mb-2" />,
+  'best-of': <Star className="w-6 h-6 mb-2" />,
+};
 
-  const [formData, setFormData] = useState<FormState>(initialState || defaultState);
-  const [tagInput, setTagInput] = useState('');
+const tooltipMap: Record<string, string> = {
+  'ice-cream': 'Gelato, soft serve, sorbet, and classic scoops.',
+  'pastries': 'Croissants, danishes, eclairs, and flaky delights.',
+  'cakes': 'Layer cakes, tarts, cheesecakes, and elegant slices.',
+  'chocolate': 'Truffles, bonbons, hot chocolate, and rich confections.',
+  'cookies': 'Chocolate chip, macarons, shortbread, and more.',
+  'beverages': 'Milkshakes, specialty lattes, and sweet drinks.',
+  'bubble-tea': 'Boba, fruit teas, and milk teas with toppings.',
+  'savory': 'Pizza, savory crepes, or salty snacks to balance the sweet.',
+  'regional': 'Local specialties unique to the destination.',
+  'avant-garde': 'Modern, experimental, and visually stunning desserts.',
+  'bakeries': 'Classic bread, buns, and rustic baked goods.',
+  'best-of': 'Top picks and quintessential choices for the city.',
+};
 
-  useEffect(() => {
-    if (initialState) {
-      setFormData(initialState);
-    }
-  }, [initialState]);
+const ItineraryForm: React.FC<ItineraryFormProps> = ({ onGenerate, isLoading }) => {
+  const [destination, setDestination] = useState('Paris, France');
+  const [budget, setBudget] = useState('moderate');
+  const [interests, setInterests] = useState<string[]>(['pastries', 'chocolate']);
+  const [tone, setTone] = useState(50);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  
-  const handleAddTag = (tagToAdd: string) => {
-    const trimmedTag = tagToAdd.trim();
-    if (trimmedTag && !formData.treatFocus.includes(trimmedTag)) {
-      setFormData(prev => ({ ...prev, treatFocus: [...prev.treatFocus, trimmedTag] }));
-    }
-    setTagInput('');
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      treatFocus: prev.treatFocus.filter(tag => tag !== tagToRemove),
-    }));
-  };
-
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagInput(e.target.value);
-  };
-  
-  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag(tagInput);
-    }
+  const handleInterestChange = (interestValue: string) => {
+    setInterests(prev =>
+      prev.includes(interestValue)
+        ? prev.filter(i => i !== interestValue)
+        : [...prev, interestValue]
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.city && formData.treatFocus.length > 0) {
-      onSubmit(formData);
-    } else {
-      alert('Please fill out the destination city and add at least one treat focus.');
-    }
+    onGenerate({ destination, budget, interests, tone });
+  };
+
+  const getToneLabel = (value: number) => {
+    if (value < 20) return "Classic & Sweet";
+    if (value < 40) return "Traditional";
+    if (value < 60) return "Balanced Narrative";
+    if (value < 80) return "Adventurous";
+    return "Wild & Decadent";
   };
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-2xl mx-auto border border-white/50">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-indigo-900">
-            Destination City
-          </label>
-          <input
-            type="text"
-            name="city"
-            id="city"
-            value={formData.city}
-            onChange={handleChange}
-            placeholder="e.g., Paris, Tokyo, Mexico City"
-            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            required
-          />
-        </div>
+    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 max-w-4xl mx-auto">
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="md:col-span-12">
+            <label htmlFor="destination" className="block text-sm font-bold text-[#2D2422] mb-2">
+              Destination City
+            </label>
+            <input
+              type="text"
+              id="destination"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#E87A5D] focus:border-[#E87A5D] transition outline-none"
+              placeholder="e.g., Tokyo, Japan"
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="md:col-span-5">
+            <label htmlFor="budget" className="block text-sm font-bold text-[#2D2422] mb-2">
+              Budget
+            </label>
+            <select
+              id="budget"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#E87A5D] focus:border-[#E87A5D] transition outline-none"
+              required
+              disabled={isLoading}
+            >
+              <option value="frugal">Frugal & Fabulous</option>
+              <option value="moderate">Sweet Splurge</option>
+              <option value="luxurious">Decadent & Divine</option>
+            </select>
+          </div>
 
-        <div>
-          <label htmlFor="neighborhood" className="block text-sm font-medium text-indigo-900">
-            Starting Neighborhood or Attraction (optional)
-          </label>
-          <input
-            type="text"
-            name="neighborhood"
-            id="neighborhood"
-            value={formData.neighborhood}
-            onChange={handleChange}
-            placeholder="e.g., Near the Louvre, SoHo, Shibuya Crossing"
-            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-                <label htmlFor="days" className="block text-sm font-medium text-indigo-900">
-                    Number of Days
+          <div className="md:col-span-7">
+            <div className="flex items-center gap-2 mb-2">
+                <label htmlFor="tone" className="block text-sm font-bold text-[#2D2422]">
+                    Narrative Tone
                 </label>
-                <input
-                    type="number"
-                    name="days"
-                    id="days"
-                    value={formData.days}
-                    onChange={(e) => setFormData(prev => ({ ...prev, days: e.target.valueAsNumber }))}
-                    min="1"
-                    max="7"
-                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                    required
-                />
+                <div className="group relative">
+                    <HelpCircle className="w-4 h-4 text-slate-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 pointer-events-none">
+                        This slider sets the mood of your storyteller. 
+                        <br/><br/>
+                        <b>Low:</b> Classic, sweet, and traditional descriptions.
+                        <br/>
+                        <b>High:</b> Wild, decadent, or experimental narrative style.
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label htmlFor="priceRange" className="block text-sm font-medium text-indigo-900">
-                    Price Range (optional)
-                </label>
-                <select
-                    name="priceRange"
-                    id="priceRange"
-                    value={formData.priceRange}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                >
-                    <option value="">Any</option>
-                    <option value="budget-friendly">Budget-friendly ($)</option>
-                    <option value="mid-range">Mid-range ($$)</option>
-                    <option value="splurge">Splurge ($$$)</option>
-                </select>
-            </div>
-        </div>
-
-        <div>
-          <label htmlFor="treatFocus" className="block text-sm font-medium text-indigo-900">
-            Treat Focus (add one or more)
-          </label>
-          <div className="mt-1 flex flex-wrap gap-2 p-2 border border-slate-300 rounded-md bg-white min-h-[42px]">
-            {formData.treatFocus.map(tag => (
-              <span key={tag} className="flex items-center gap-1 bg-indigo-100 text-indigo-800 text-sm font-medium px-2 py-1 rounded-md">
-                {tag}
-                <button type="button" onClick={() => handleRemoveTag(tag)} className="text-indigo-600 hover:text-indigo-900 font-bold">
-                  &times;
-                </button>
-              </span>
-            ))}
-             <input
-                type="text"
-                id="treatFocus"
-                value={tagInput}
-                onChange={handleTagInputChange}
-                onKeyDown={handleTagInputKeyDown}
-                placeholder="Type or select below..."
-                className="flex-grow p-1 outline-none bg-transparent"
+            <div className="pt-2">
+              <input
+                  id="tone"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={tone}
+                  onChange={(e) => setTone(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#E87A5D]"
+                  disabled={isLoading}
               />
+              <div className="flex justify-between text-[10px] uppercase tracking-wider font-bold text-slate-400 mt-2">
+                  <span>Classic</span>
+                  <span className="text-[#E87A5D]">{getToneLabel(tone)}</span>
+                  <span>Wild</span>
+              </div>
+            </div>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-              {treatOptions.map(option => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleAddTag(option.label)}
-                  className="px-2.5 py-1 text-xs bg-slate-200 text-slate-700 rounded-md hover:bg-indigo-500 hover:text-white transition-colors"
-                >
-                  {option.label}
-                </button>
-              ))}
+
+          <div className="md:col-span-12 mt-4">
+            <label className="block text-sm font-bold text-[#2D2422] mb-4">
+              Dessert Interests
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {treatOptions.map(option => {
+                const isSelected = interests.includes(option.value);
+                return (
+                  <div key={option.value} className="relative group h-full">
+                    <button
+                      type="button"
+                      onClick={() => handleInterestChange(option.value)}
+                      className={`w-full h-full flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 hover:-translate-y-1 hover:scale-105 ${
+                        isSelected 
+                          ? 'border-[#E87A5D] bg-[#E87A5D]/10 text-[#E87A5D]' 
+                          : 'border-transparent bg-slate-50 text-slate-600 hover:bg-slate-100 hover:shadow-sm'
+                      }`}
+                      disabled={isLoading}
+                    >
+                      {iconMap[option.value]}
+                      <span className="text-xs font-medium text-center leading-tight">{option.label}</span>
+                    </button>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none text-center">
+                      {tooltipMap[option.value]}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
-
-        <div>
-          <label htmlFor="specialRequests" className="block text-sm font-medium text-indigo-900">
-            Special Requests (optional)
-          </label>
-          <textarea
-            name="specialRequests"
-            id="specialRequests"
-            value={formData.specialRequests}
-            onChange={handleChange}
-            rows={2}
-            placeholder="e.g., Kid-friendly options, places with great coffee"
-            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="exclusions" className="block text-sm font-medium text-indigo-900">
-            Exclusions (optional)
-          </label>
-          <textarea
-            name="exclusions"
-            id="exclusions"
-            value={formData.exclusions}
-            onChange={handleChange}
-            rows={2}
-            placeholder="e.g., No nuts, avoid very touristy areas"
-            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full inline-flex justify-center items-center py-3 px-6 border border-transparent shadow-md text-base font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
-          >
-            {isLoading ? 'Crafting Your Tour...' : 'Build My Treat Itinerary'}
-          </button>
+        <div className="mt-10 text-center">
+            <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto py-3 px-8 border border-transparent shadow-sm text-base font-medium rounded-full text-white bg-[#E87A5D] hover:bg-[#D97757] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E87A5D] disabled:bg-[rgba(232,122,93,0.5)] disabled:cursor-not-allowed hover:shadow-md transform hover:-translate-y-0.5 transition-all"
+                disabled={isLoading}
+            >
+                <Wand2 className="w-5 h-5"/>
+                {isLoading ? 'Conjuring...' : 'Create My Dessert Tour'}
+            </button>
         </div>
       </form>
     </div>

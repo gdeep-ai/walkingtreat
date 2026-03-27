@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: itineraries
+    // Document ID: auto-generated or hash of parameters
+    // Fields:
+    //   - destination: string (required) - The requested destination
+    //   - budget: string (required) - The requested budget
+    //   - interests: list (required) - The requested interests
+    //   - tone: number (required) - The requested tone
+    //   - result: string (required) - The JSON stringified GenerationResult
+    //   - createdAt: timestamp (required) - When the cache entry was created
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+       return request.auth != null;
+    }
+
+    function hasRequiredFields(fields) {
+       return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidList(list, maxSize) {
+      return list is list && list.size() <= maxSize;
+    }
+
+    function isValidItinerary(data) {
+      return hasOnlyAllowedFields(['destination', 'budget', 'interests', 'tone', 'result', 'createdAt']) &&
+             data.destination is string && data.destination.size() > 0 && data.destination.size() < 200 &&
+             data.budget is string && data.budget.size() > 0 && data.budget.size() < 50 &&
+             isValidList(data.interests, 20) &&
+             data.tone is number && data.tone >= 0 && data.tone <= 100 &&
+             data.result is string && data.result.size() > 0 && data.result.size() < 100000 &&
+             data.createdAt is timestamp;
+    }
+
+    match /itineraries/{itineraryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidItinerary(request.resource.data);
+      allow update: if false; // Cached items should not be updated
+      allow delete: if false; // Cached items should not be deleted
+    }
+  }
+}

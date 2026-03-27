@@ -10,4 +10,5 @@ export const treatOptions = [
   { value: 'regional', label: 'Regional Specialties' },
   { value: 'avant-garde', label: 'Avant-Garde/Modern' },
   { value: 'bakeries', label: 'Artisanal Bakeries' },
+  { value: 'best-of', label: 'Best Of / Top Picks' },
 ];

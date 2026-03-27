@@ -23,9 +23,10 @@ const ImageGallery: React.FC = () => {
         <div className="my-12">
             <div className="w-full flex justify-center">
                 <img 
-                    className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full shadow-xl border-4 border-white/50" 
+                    className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full shadow-lg border-8 border-white" 
                     src={imageSrc} 
                     alt="Dessert inspiration" 
+                    referrerPolicy="no-referrer"
                 />
             </div>
         </div>
